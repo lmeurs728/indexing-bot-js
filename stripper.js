@@ -9,9 +9,15 @@ function startTypingNames() {
 		robot.typeString(name.last);
 		robot.keyTap("tab");
 		robot.typeString(name.first);
-		robot.setKeyboardDelay(251);
-		robot.keyTap("pagedown");
-	})
+		if (name.prefix) {
+			robot.keyTap("tab");
+			robot.typeString(name.prefix);
+			robot.keyTap("tab", "shift");
+		}
+		robot.keyTap("right", "control");
+		robot.setKeyboardDelay(250);
+		robot.keyTap("tab", "shift");
+	});
 }
 
 try {  
@@ -30,6 +36,10 @@ try {
 
 		var currName = {};
 		// Set the last name
+		var lastChar = words[0][words[0].length];
+		if (lastChar === "." || lastChar === ",") {
+			currName.last = words[0].substring(0, words[0].length - 1);
+		}
 		currName.last = words[0];
 
 		// Set the first name
@@ -38,19 +48,23 @@ try {
 		// sometimes there is no comma so we check for numbers or lowercase
 		var i = 1;
 		while (words[i] && words[i][0] && words[i][0] === words[i][0].toUpperCase()) {
+			var name = words[i];
 			if (i > 1) {
 				firstName += " ";
 			}
+			else if (name === "Mrs." || name === "Miss" || name === "Rev") {
+				currName.prefix = name;
+			}
 			// If it is an initial or has a comma, ignore that and go next
-			if (words[i][words[i].length - 1] === ",") {
-				firstName += words[i].substring(0, words[i].length - 1);
+			if (name[name.length - 1] === ",") {
+				firstName += name.substring(0, name.length - 1);
 				break;
 			}
-			else if (words[i][words[i].length - 1] === ".") {
-				firstName += words[i].substring(0, words[i].length - 1);
+			else if (name[name.length - 1] === ".") {
+				firstName += name.substring(0, name.length - 1);
 			}
 			else {
-				firstName += words[i];
+				firstName += name;
 			}
 			i++;
 		}
