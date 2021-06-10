@@ -21,6 +21,9 @@ function isLetter(c, i, word) {
 }
 
 function hasDoubleLetter(word) {
+	if (!word) {
+		return false;
+	}
 	return word.split("").some((v,i,a) => a.lastIndexOf(v) != i);
 }
 
@@ -61,6 +64,12 @@ function startTypingNames() {
 		typeName(name.last);
 		robot.keyTap("tab");
 		pause();
+		if (!name.first) {
+			robot.keyTap("b", "control");
+			pause();
+			robot.keyTap("tab", "shift");
+			pause();
+		}
 		typeName(name.first);
 		if (name.prefix) {
 			robot.keyTap("tab");
@@ -95,16 +104,30 @@ try {
 			return;
 		}
 
-		var currName = {};
+		var currName = {last: "", first: ""};
 		// Set the last name
-		var lastChar = words[0][words[0].length];
+		var lastChar = words[0][words[0].length - 1];
 		if (words[0][0] === '—' || words[0][0] === '~') {
 			currName.last = lastName;
 		}
-		else if (lastChar === "." || lastChar === ",") {
-			var strippedName = words[0].substring(0, words[0].length - 1);
+		else if (lastChar === ".") {
+			var strippedName = capitalizeFirstLetter(words[0].substring(0, words[0].length - 1));
 			currName.last = strippedName;
 			lastName = strippedName;
+		}
+		else if (lastChar === ",") {
+			var strippedName = capitalizeFirstLetter(words[0].substring(0, words[0].length - 1));
+			currName.last = strippedName;
+			lastName = strippedName;
+			names.push(currName);
+			return;
+		}
+		else if (lastChar === "\r") {
+			var strippedName = capitalizeFirstLetter(words[0].substring(0, words[0].length - 1));
+			currName.last = strippedName;
+			lastName = strippedName;
+			names.push(currName);
+			return;
 		}
 		else {
 			if (!isWord(words[0])) {
@@ -149,7 +172,7 @@ try {
 		names.push(currName);
 	})
 
-	//console.log(names);
+	// console.log(names);
 	console.log("getReady!!!");
 	setTimeout (() => {
 		startTypingNames();
@@ -158,3 +181,5 @@ try {
 } catch(e) {
 	console.log('Error:', e.stack);
 }
+
+// TODO handle last & last
