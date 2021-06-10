@@ -10,11 +10,14 @@ function pause(long) {
 }
 
 function isWord(word) {
-	return word.split('').every(char => isLetter(char));
+	return word.split('').every((char, i, a) => isLetter(char, i, word));
 }
 
-function isLetter(c) {
-	return c.toLowerCase() != c.toUpperCase();
+function isLetter(c, i, word) {
+	if (c === "’") {
+		word[i] === "'";
+	}
+	return c.toLowerCase() != c.toUpperCase() || c === "'";
 }
 
 function hasDoubleLetter(word) {
@@ -32,8 +35,14 @@ function typeName(name) {
 }
 
 function stripPunctuation(name) {
+	if (name[name.length - 1] === "\r") {
+		name = name.substring(0, name.length - 1);
+	}
 	if (name[name.length - 1] === ",") {
 		breakOut = true;
+		if (name[name.length - 2] === ".") {
+			return name.substring(0, name.length - 2);
+		}
 		return name.substring(0, name.length - 1);
 	}
 	else if (name[name.length - 1] === ".") {
@@ -89,7 +98,7 @@ try {
 		var currName = {};
 		// Set the last name
 		var lastChar = words[0][words[0].length];
-		if (words[0][0] === '—') {
+		if (words[0][0] === '—' || words[0][0] === '~') {
 			currName.last = lastName;
 		}
 		else if (lastChar === "." || lastChar === ",") {
@@ -140,10 +149,10 @@ try {
 		names.push(currName);
 	})
 
-	console.log(names);
+	//console.log(names);
 	console.log("getReady!!!");
 	setTimeout (() => {
-		//startTypingNames();
+		startTypingNames();
 	}, 2000)
 	
 } catch(e) {
