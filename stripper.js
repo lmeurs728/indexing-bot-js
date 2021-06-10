@@ -2,21 +2,68 @@ var fs = require('fs');
 var robot = require("robotjs");
 
 var names = [];
+var breakOut = false;
+
+function pause(long) {
+	robot.setKeyboardDelay(long ? 200 : 40);
+	robot.keyTap("shift");
+}
+
+function isWord(word) {
+	return word.split('').every(char => isLetter(char));
+}
+
+function isLetter(c) {
+	return c.toLowerCase() != c.toUpperCase();
+}
+
+function hasDoubleLetter(word) {
+	return word.split("").some((v,i,a) => a.lastIndexOf(v) != i);
+}
+
+function typeName(name) {
+	if (hasDoubleLetter(name)) {
+		robot.typeStringDelayed(name, 10000);
+	}
+	else {
+		robot.typeString(name);
+	}
+	
+}
+
+function stripPunctuation(name) {
+	if (name[name.length - 1] === ",") {
+		breakOut = true;
+		return name.substring(0, name.length - 1);
+	}
+	else if (name[name.length - 1] === ".") {
+		return name.substring(0, name.length - 1);
+	}
+	return name;
+}
+
+function capitalizeFirstLetter(word) {
+	word = word.toLowerCase();
+	return word.charAt(0).toUpperCase() + word.slice(1);
+}
 
 function startTypingNames() {
 	names.forEach(name => {
-		robot.setKeyboardDelay(10);
-		robot.typeString(name.last);
+		typeName(name.last);
 		robot.keyTap("tab");
-		robot.typeString(name.first);
+		pause();
+		typeName(name.first);
 		if (name.prefix) {
 			robot.keyTap("tab");
-			robot.typeString(name.prefix);
+			pause();
+			typeName(name.prefix);
 			robot.keyTap("tab", "shift");
+			pause();
 		}
 		robot.keyTap("right", "control");
-		robot.setKeyboardDelay(250);
+		pause(true);
 		robot.keyTap("tab", "shift");
+		pause();
 	});
 }
 
@@ -34,13 +81,22 @@ try {
 
 		var words = line.split(" ");
 
+		if (!words[0]) {
+			return;
+		}
+
 		var currName = {};
 		// Set the last name
 		var lastChar = words[0][words[0].length];
 		if (lastChar === "." || lastChar === ",") {
 			currName.last = words[0].substring(0, words[0].length - 1);
 		}
-		currName.last = words[0];
+		else {
+			if (!isWord(words[0])) {
+				return;
+			}
+			currName.last = capitalizeFirstLetter(words[0]);
+		}
 
 		// Set the first name
 		var firstName = "";
@@ -49,22 +105,26 @@ try {
 		var i = 1;
 		while (words[i] && words[i][0] && words[i][0] === words[i][0].toUpperCase()) {
 			var name = words[i];
-			if (i > 1) {
+
+			// Handle common Prefixes
+			if (name === "Mrs." || name === "Miss" || name === "Rev." || name === "Dr.") {
+				currName.prefix = capitalizeFirstLetter(stripPunctuation(name));
+				i++;
+				continue;
+			}
+
+			if (!currName.prefix && i > 1 || i > 2) {
 				firstName += " ";
 			}
-			else if (name === "Mrs." || name === "Miss" || name === "Rev") {
-				currName.prefix = name;
-			}
 			// If it is an initial or has a comma, ignore that and go next
-			if (name[name.length - 1] === ",") {
-				firstName += name.substring(0, name.length - 1);
+			name = stripPunctuation(name);
+			if (!isWord(name)) {
 				break;
 			}
-			else if (name[name.length - 1] === ".") {
-				firstName += name.substring(0, name.length - 1);
-			}
-			else {
-				firstName += name;
+			firstName += capitalizeFirstLetter(name);
+			if (breakOut) {
+				breakOut = false;
+				break;
 			}
 			i++;
 		}
@@ -72,10 +132,11 @@ try {
 		names.push(currName);
 	})
 
+	//console.log(names);
 	console.log("getReady!!!");
 	setTimeout (() => {
 		startTypingNames();
-	}, 5000)
+	}, 2000)
 	
 } catch(e) {
 	console.log('Error:', e.stack);
