@@ -67,6 +67,7 @@ function startTypingNames() {
 	});
 }
 
+var lastName = "";
 try {  
     var data = fs.readFileSync('input.txt', 'utf8');
 	// console.log(data.toString());
@@ -88,14 +89,21 @@ try {
 		var currName = {};
 		// Set the last name
 		var lastChar = words[0][words[0].length];
-		if (lastChar === "." || lastChar === ",") {
-			currName.last = words[0].substring(0, words[0].length - 1);
+		if (words[0][0] === '—') {
+			currName.last = lastName;
+		}
+		else if (lastChar === "." || lastChar === ",") {
+			var strippedName = words[0].substring(0, words[0].length - 1);
+			currName.last = strippedName;
+			lastName = strippedName;
 		}
 		else {
 			if (!isWord(words[0])) {
 				return;
 			}
-			currName.last = capitalizeFirstLetter(words[0]);
+			var namifiedName = capitalizeFirstLetter(words[0]);
+			currName.last = namifiedName;
+			lastName = namifiedName;
 		}
 
 		// Set the first name
@@ -132,10 +140,10 @@ try {
 		names.push(currName);
 	})
 
-	//console.log(names);
+	console.log(names);
 	console.log("getReady!!!");
 	setTimeout (() => {
-		startTypingNames();
+		//startTypingNames();
 	}, 2000)
 	
 } catch(e) {
